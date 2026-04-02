@@ -26,7 +26,15 @@ pip install -r requirements.txt
 
 ```
 ├── main.py                         # Main entry point
-├── evidence_tree.py                # Core Tree-of-Evidence search logic
+├── evidence_tree/                  # Core Tree-of-Evidence search (package)
+│   ├── __init__.py                 # Unified TreeOfEvidence class
+│   ├── utils.py                    # Shared helpers and regex constants
+│   ├── base.py                     # Base class (init, generate, logging)
+│   ├── parsing.py                  # LLM response parsing
+│   ├── fusion.py                   # Evidence fusion and conflict resolution
+│   ├── core_tot.py                 # Basic tree-of-thought DFS retrieval
+│   ├── block_chain.py              # Cross-block retrieval and voting
+│   └── aiops.py                    # AIOps modes (Chimera-CDER, dual-view)
 ├── searcher.py                     # Retrieval component (GTR / BM25 / Contriever)
 ├── generator.py                    # LLM generation component (OpenAI API)
 ├── generator_deepseek.py           # DeepSeek model variant
@@ -53,11 +61,7 @@ pip install -r requirements.txt
 2. **BGL**: Download the BGL log dataset and prepare similarly.
 3. **Thunderbird**: Download the Thunderbird log dataset.
 
-Build the retrieval corpus and FAISS index:
-```bash
-# Build GTR embeddings for the corpus
-python scripts/build_gtr_embeddings_only.py --corpus_path <path_to_corpus>
-```
+Place the corpus JSONL files and pre-built FAISS indices under the `data/` directory.
 
 ## Usage
 

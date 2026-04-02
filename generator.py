@@ -465,7 +465,7 @@ class OpenAIChatGPTModel(GenerateLanguageModel):
         # Compatible with two common formats:
         # - OPENAI_API_BASE=http://host:port
         # - OPENAI_API_BASE=http://host:port/v1
-        api_base_url = (os.getenv("OPENAI_API_BASE", "https://api.openai-proxy.org") or "").rstrip("/")
+        api_base_url = (os.getenv("OPENAI_API_BASE", "https://api.openai.com") or "").rstrip("/")
         if api_base_url.endswith("/v1"):
             api_v1 = api_base_url
         else:

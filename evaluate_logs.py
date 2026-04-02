@@ -6,7 +6,7 @@ import argparse
 from collections import Counter
 import numpy as np
 
-# --- 复用 evaluate/hotpot_evaluate.py 的核心逻辑 ---
+# --- Reuse core logic from evaluate/hotpot_evaluate.py ---
 
 def normalize_answer(s):
     def remove_articles(text):
@@ -49,25 +49,25 @@ def f1_score(prediction, ground_truth):
 def exact_match_score(prediction, ground_truth):
     return (normalize_answer(prediction) == normalize_answer(ground_truth))
 
-# --- 针对 Log 数据集的适配逻辑 ---
+# --- Adaptation logic for log datasets ---
 
 def extract_ground_truth_from_question(question, dataset_type):
     """
-    从查询中提取 Ground Truth。
-    假设 Question 格式为: "Find logs with message: <LOG_CONTENT>..."
+    Extract ground truth from the query.
+    Assumes Question format: "Find logs with message: <LOG_CONTENT>..."
     """
-    # 移除 "Find logs with message: " 前缀
+    # Remove "Find logs with message: " prefix
     clean_q = re.sub(r"^Find logs with message:\s*", "", question, flags=re.IGNORECASE)
-    
-    # 移除末尾的省略号 "..."
+
+    # Remove trailing ellipsis "..."
     clean_q = re.sub(r"\.\.\.$", "", clean_q)
-    
+
     if dataset_type.lower() == 'hdfs':
-        # 对于 HDFS，关键是 Block ID。如果 Question 包含 Block ID，我们将其视为最重要的 GT
-        # 但为了计算 Token F1，我们使用整个 Message 内容
+        # For HDFS, Block ID is the key identifier.
+        # For Token F1 computation, we use the full message content.
         return clean_q.strip()
     elif dataset_type.lower() == 'bgl':
-        # 对于 BGL，使用整个 Message 内容
+        # For BGL, use the full message content.
         return clean_q.strip()
     else:
         return clean_q.strip()
@@ -82,15 +82,15 @@ def evaluate_file(result_file, dataset_type):
         return
 
     metrics = {'f1': [], 'prec': [], 'recall': [], 'em': []}
-    
+
     for item in results:
         question = item.get('question', '')
         response = item.get('response', '')
-        
-        # 1. 提取 Ground Truth
+
+        # 1. Extract ground truth
         ground_truth = extract_ground_truth_from_question(question, dataset_type)
-        
-        # 2. 如果 Response 是 "The information is missing."，则分数为 0
+
+        # 2. If response indicates missing information, score is 0
         if "information is missing" in response:
             metrics['f1'].append(0)
             metrics['prec'].append(0)
@@ -98,16 +98,16 @@ def evaluate_file(result_file, dataset_type):
             metrics['em'].append(0)
             continue
 
-        # 3. 计算分数
+        # 3. Compute scores
         f1, prec, recall = f1_score(response, ground_truth)
         em = exact_match_score(response, ground_truth)
-        
+
         metrics['f1'].append(f1)
         metrics['prec'].append(prec)
         metrics['recall'].append(recall)
         metrics['em'].append(1 if em else 0)
 
-    # 4. 汇总输出
+    # 4. Summary output
     print(f"\n=== {dataset_type} Evaluation Results ===")
     print(f"Total Samples: {len(results)}")
     print(f"Average Precision: {np.mean(metrics['prec']) * 100:.2f}%")
@@ -124,4 +124,3 @@ if __name__ == "__main__":
 
     evaluate_file(args.hdfs_result, "HDFS")
     evaluate_file(args.bgl_result, "BGL")
-

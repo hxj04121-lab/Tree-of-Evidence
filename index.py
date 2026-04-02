@@ -305,7 +305,6 @@ class DistributedFAISSIndex(DistributedIndex):
         Supported gpu index types: IVFFlat, IndexFlatIP, IndexIVFPQ, IVFSQ.
         """
         dimension, num_points = self.embeddings.shape
-        # @TODO: Add support to set the n_list and n_probe parameters.
         n_list = math.floor(math.sqrt(num_points))
         self.faiss_gpu_index = self.gpu_index_factory(dimension, n_list)
 
