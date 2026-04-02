@@ -24,7 +24,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from evaluate_aiops_anomaly_detection import _extract_pred_label, _normalize_gold
+from evaluate.anomaly_detection import _extract_pred_label, _normalize_gold
 
 
 def _load_json(path: str) -> Any:

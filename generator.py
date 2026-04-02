@@ -206,7 +206,7 @@ class GenerateLanguageModel:
         "Instruct:{INST}\n\nQuestion:{Q}\n\nCandidates:\n{C}\n\nAnswer:"
     """
     def get_vote_prompt(self, question=None, candidates=None):
-        path = getattr(self.args, "block_chain_vote_judge_prompt_path", None) or "prompts/logs_vote_prompt_v1.json"
+        path = getattr(self.args, "block_chain_vote_judge_prompt_path", None) or "prompts/vote_prompt.json"
         with open(path, "r", encoding="utf-8-sig") as f:
             config = json.load(f)
         instruction = config.get("instruct", "")

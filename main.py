@@ -7,7 +7,7 @@ import warnings
 import numpy as np
 
 from generator import initial_generator
-from searcher import RetrivalModel
+from retrieval.searcher import RetrievalModel
 from evidence_tree import TreeOfEvidence, _select_extractive_log_response
 import dist_utils
 import torch.distributed as dist
@@ -20,7 +20,7 @@ logger.setLevel(logging.INFO)
 
 def main(args):
     world_size = int(os.environ.get("WORLD_SIZE", 1))
-    retriever = RetrivalModel(args)
+    retriever = RetrievalModel(args)
     generator = initial_generator(args)
     tree_helper = TreeOfEvidence(retriever=retriever, generator=generator, args=args)
 
@@ -441,8 +441,8 @@ if __name__=="__main__":
     parser.add_argument(
         "--block_chain_vote_judge_prompt_path",
         type=str,
-        default="prompts/logs_vote_prompt_v1.json",
-        help="Prompt config JSON for block_chain_vote judge (default: prompts/logs_vote_prompt_v1.json).",
+        default="prompts/vote_prompt.json",
+        help="Prompt config JSON for block_chain_vote judge (default: prompts/vote_prompt.json).",
     )
 
     parser.add_argument(

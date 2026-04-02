@@ -25,6 +25,11 @@ pip install -r requirements.txt
 
 ```
 ├── main.py                         # Main entry point
+├── generator.py                    # LLM generation component (OpenAI API)
+├── prompts.py                      # Prompt template generation
+├── utils.py                        # Text processing utilities
+├── dist_utils.py                   # Distributed training utilities
+├── slurm.py                        # SLURM cluster integration
 ├── evidence_tree/                  # Core Tree-of-Evidence search (package)
 │   ├── __init__.py                 # Unified TreeOfEvidence class
 │   ├── utils.py                    # Shared helpers and regex constants
@@ -33,22 +38,19 @@ pip install -r requirements.txt
 │   ├── fusion.py                   # Evidence fusion and conflict resolution
 │   ├── core_tot.py                 # Basic tree-of-thought DFS retrieval
 │   └── block_chain.py              # Cross-block retrieval and voting
-├── searcher.py                     # Retrieval component (GTR / BM25 / Contriever)
-├── generator.py                    # LLM generation component (OpenAI API)
-├── index.py                        # FAISS index management
-├── index_io.py                     # Index I/O utilities
-├── utils.py                        # Text processing utilities
-├── dist_utils.py                   # Distributed training utilities
-├── slurm.py                        # SLURM cluster integration
-├── atlas.py                        # Dense encoder (Contriever)
-├── modeling_bert.py                # BERT model implementation
-├── prompts.py                      # Prompt template generation
-├── evaluate_aiops_anomaly_detection.py  # Anomaly classification metrics
-├── evaluate_aiops_logs.py          # AIOps log evaluation (F1, EM)
-├── evaluate_logs.py                # Log-match evaluation
-├── evaluate/                       # Additional evaluation utilities
+├── retrieval/                      # Retrieval components (package)
+│   ├── searcher.py                 # RetrievalModel (GTR / BM25 / Contriever)
+│   ├── index.py                    # FAISS index management
+│   ├── index_io.py                 # Index I/O utilities
+│   ├── atlas.py                    # Dense encoder (Contriever)
+│   └── modeling_bert.py            # BERT model implementation
+├── evaluate/                       # Evaluation utilities
+│   ├── anomaly_detection.py        # Anomaly classification metrics
+│   ├── aiops_logs.py               # AIOps log evaluation (F1, EM)
+│   ├── log_match.py                # Log-match evaluation
+│   └── hotpot_evaluate.py          # HotpotQA-style evaluation
 ├── prompts/                        # Prompt configuration JSONs
-└── scripts/                        # Experiment driver scripts
+└── scripts/                        # Analysis and evaluation scripts
 ```
 
 ## Data Preparation
@@ -108,10 +110,10 @@ python scripts/compute_cost_report.py --result_path result/hdfs_result.json
 
 ```bash
 # Anomaly detection (classification metrics)
-python evaluate_aiops_anomaly_detection.py --result_path result/hdfs_result.json
+python -m evaluate.anomaly_detection --result_path result/hdfs_result.json
 
 # Log evidence matching (F1, EM)
-python evaluate_aiops_logs.py --hdfs_result result/hdfs_result.json
+python -m evaluate.aiops_logs --hdfs_result result/hdfs_result.json
 ```
 
 ## Environment Variables

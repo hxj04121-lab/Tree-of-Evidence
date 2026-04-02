@@ -9,7 +9,7 @@ import json
 import logging
 
 import dist_utils
-from index import DistributedFAISSIndex, DistributedIndex
+from retrieval.index import DistributedFAISSIndex, DistributedIndex
 
 logger = logging.getLogger(__name__)
 

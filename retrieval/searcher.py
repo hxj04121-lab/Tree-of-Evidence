@@ -9,10 +9,10 @@ import warnings
 from array import array
 
 from sentence_transformers import SentenceTransformer
-from index_io import load_or_initialize_index
+from retrieval.index_io import load_or_initialize_index
 
-from atlas import Atlas
-from modeling_bert import BertModel
+from retrieval.atlas import Atlas
+from retrieval.modeling_bert import BertModel
 from tqdm import tqdm
 import argparse
 import torch
@@ -75,7 +75,7 @@ def doc_to_text_dense(doc):
     return doc['title'] + '. ' + doc['text']
 
 
-class RetrivalModel:
+class RetrievalModel:
     def __init__(self, args):
         slurm.init_distributed_mode(args)
         self.args = args
@@ -546,7 +546,7 @@ if __name__ == "__main__":
     parser.add_argument("--main_port", type=int, default=-1, help="Main port (for multi-node jobs)")
 
     args = parser.parse_args()
-    retriever = RetrivalModel(args)
+    retriever = RetrievalModel(args)
 
     # result = []
     # while True:
