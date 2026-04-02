@@ -341,117 +341,6 @@ class GenerateLanguageModel:
         pass
 
 
-class ChatGPTModel(GenerateLanguageModel):
-    def __init__(self, args):
-        super(ChatGPTModel, self).__init__(args)
-        self.gpt35_sleep_time = 5
-        self.gpt4_sleep_time = 20
-        self.repeat_times = 6
-
-        if self.args.generator == "gpt35":
-            self.url = ""  # set your API endpoint
-            self.headers = {
-                "X-Gateway-Stage": "RELEASE",
-                "X-Gateway-SecretId": "",
-                "Content-Type": "application/json",
-                "X-Gateway-SecretKey": "",
-            }
-            self.userID = ""
-
-        elif self.args.generator == "gpt35_instruct":
-            self.url = ""  # set your API endpoint
-            self.headers = {
-                "X-Gateway-Stage": "RELEASE",
-                "X-Gateway-SecretId": "",
-                "Content-Type": "application/json",
-                "X-Gateway-SecretKey": "",
-            }
-            self.userID = ""
-        elif self.args.generator == "gpt4":
-            self.url = ""  # set your API endpoint
-            self.headers = {
-                "X-Gateway-Stage": "RELEASE",
-                "X-Gateway-SecretId": "",
-                "Content-Type": "application/json",
-                "X-Gateway-SecretKey": "",
-            }
-            self.userID = ""
-        else:
-            print("You must name as gpt35 or gpt4 to use chatgpt api!!")
-
-    def get_body(self, system_prompt, input):
-        if system_prompt == "":
-            system_prompt = "You are ChatGPT."
-        if self.args.generator == "gpt35":
-            body = {
-                "userId": self.userID,
-                "model": "gpt-3.5-turbo",
-                "messages": [{
-                    'role': 'system', 'content': system_prompt,
-                }, {
-                    'role': 'user', 'content': input,
-                }
-                ]
-            }
-        elif self.args.generator == "gpt35_instruct":
-            body = {
-                # "userId": self.userID,
-                # "model": "gpt-3.5-turbo-instruct",
-                "prompt": [input],
-                "max_tokens": self.args.max_seq_len,
-                "temperature": self.args.temperature,
-                "top_p": self.args.top_p,
-                "top_k": self.args.top_k,
-            }
-
-        elif self.args.generator == "gpt4":
-            body = {
-                "userId": self.userID,
-                "model": "gpt-4",
-                "set": "gpt4",
-                "messages": [{
-                    'role': 'system', 'content': system_prompt,
-                }, {
-                    'role': 'user', 'content': input,
-                }
-                ]
-            }
-        else:
-            print("You must name as gpt35 or gpt4 to use chatgpt api!!")
-        return body
-
-    def get_response(self, body):
-        if "gpt35" in self.args.generator:
-            time.sleep(self.gpt35_sleep_time)
-        else:
-            time.sleep(self.gpt4_sleep_time)
-        data = json.dumps(body).encode("utf-8")
-        print("*" * 50)
-        try:
-            request = urllib.request.Request(url=self.url, data=data, headers=self.headers)
-            response = urllib.request.urlopen(request, timeout=20 * 3600)
-        except urllib.error.HTTPError as e:
-            print("HTTP Error:", e.code, self.url)
-            return ""
-        except urllib.error.URLError as e:
-            print("URL Error:", e.reason, self.url)
-            return ""
-
-        json_response = response.read().decode("utf-8")
-        try:
-            passages = json.loads(json_response)
-            if self.args.generator == "gpt35_instruct":
-                response = passages["data"]["choices"][0]["text"]
-            else:
-                response = passages["resp"]["choices"][0]["message"]["content"]
-        except:
-            print("Request failed")
-            print(json_response)
-            return ""
-        response = response.strip()
-        print(response)
-        return response
-
 class OpenAIChatGPTModel(GenerateLanguageModel):
     def __init__(self, args):
         super(OpenAIChatGPTModel, self).__init__(args)
@@ -530,7 +419,7 @@ class OpenAIChatGPTModel(GenerateLanguageModel):
         # Count each attempted API call (used by Task 1.2 cost instrumentation).
         self.called_times += 1
 
-        print("*" * 50)
+        logger.debug("=" * 50)
         _t0 = time.time()
         try:
             resp = requests.post(self.url, headers=self.headers, json=body, timeout=20 * 3600)
@@ -620,8 +509,7 @@ class LLamaModel(GenerateLanguageModel):
             top_p=self.args.top_p,
         )
         for query, result in zip(queries, results):
-            # print("query: " + query)
-            print(
+            logger.info(
                 f"> {result['generation']['role'].capitalize()}: {result['generation']['content']}"
             )
 
@@ -705,7 +593,7 @@ class LLamaModelHF(GenerateLanguageModel):
         )
 
         results = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-        print(results)
+        logger.info(results)
 
         return results
 
@@ -739,75 +627,9 @@ def initial_generator(args):
     if gen in openai_models or os.environ.get("OPENAI_API_BASE"):
         return OpenAIChatGPTModel(args=args)
 
-    # Backward-compatible: internal ChatGPTModel for unknown gpt* strings when no API base is configured.
-    if "gpt" in gen_l:
-        return ChatGPTModel(args=args)
 
     raise ValueError(
         f"Unknown --generator={gen!r}. Set OPENAI_API_BASE for an OpenAI-compatible server, "
         "or use a supported generator (gpt-*, llama, llama-hf)."
     )
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-
-    ##Generator
-    parser.add_argument("--generator", type=str, default=None, help="generate model name")
-    parser.add_argument("--openai", type=bool, default=False, help="if use openai api")
-    parser.add_argument("--generator_file_path", type=str, default="./models/llama-2-7b-chat",
-                        help="the path for llama2 chat, you can download from github or huggingface")
-    parser.add_argument("--generator_tokenizer_path", type=str, default="./models/tokenizer.model",
-                        help="the path for llama2 chat tokenizer, you can download from github or huggingface")
-    parser.add_argument("--temperature", type=float, default=0.3, help="the temperature for inference")
-    parser.add_argument("--top_p", type=float, default=0.9, help="top_p for inference")
-    parser.add_argument("--top_k", type=int, default=40, help="top_k for inference")
-    parser.add_argument("--max_seq_len", type=int, default=2048, help="max sequence length")
-    parser.add_argument("--max_gen_len", type=int, default=1024, help="max generate length")
-    parser.add_argument("--max_batch_size", type=int, default=4, help="max bench size")
-
-    parser.add_argument("--thought_config_path", type=str, default="./prompts/asqa/thought_prompt.json",
-                        help="the tree of thought prompt config file path")
-    parser.add_argument("--evidence_fusion_config_path", type=str, default="./prompts/evidence_fusion.json",
-                        help="the evidence fusion prompt config file path")
-    parser.add_argument("--evidence_summary_config_path", type=str, default="./prompts/evidence_summary.json",
-                        help="the evidence summary prompt config file path")
-    parser.add_argument("--conflict_evidence_config_path", type=str, default="./prompts/conflict_evidence.json",
-                        help="the conflict evidence prompt config file path")
-    parser.add_argument("--missing_evidence_config_path", type=str, default="./prompts/missing_evidence.json",
-                        help="the missing evidence prompt config file path")
-    parser.add_argument("--conflict_fusion_config_path", type=str, default="./prompts/conflict_fusion.json",
-                        help="the conflict fusion prompt config file path")
-    parser.add_argument("--response_config_path", type=str, default="./prompts/hotpotqa/response_prompt.json",
-                        help="the response prompt config file path")
-
-    args = parser.parse_args()
-
-    if args.openai:
-        model = OpenAIChatGPTModel(args=args)
-    elif "gpt" in args.generator:
-        model = ChatGPTModel(args=args)
-    elif "llama-hf" in args.generator:
-        model = LLamaModelHF(args=args)
-    elif "llama" in args.generator:
-        model = LLamaModel(args=args)
-
-    if args.openai:
-        query = input("scanf your question:")
-        response = model.get_response(system_prompt="", queries=query)
-    if "gpt" in args.generator:
-        while True:
-            query = input("scanf your question:")
-            body = model.get_body(system_prompt="You are a helpful assistant.", input=query)
-            response = model.get_response(body=body)
-    elif "llama-hf" in args.generator:
-        while True:
-            query = input("scanf your question:")
-            model.get_response(queries=[query], system_prompt="")
-    elif "llama" in args.generator:
-        while True:
-            query = input("scanf your question:")
-            model.get_response(queries=[query], system_prompt="")
-
-    # prompt = model.get_hotpotqa_response_prompt(shot=3, question="what is your name?", documents=["my name is gpt", "my name is jpli"])
-    # prompt = model.get_missing_evidence_prompt(shot=3, question="what is your name?", history=["my name is gpt", "my name is jpli"])
 

@@ -31,7 +31,7 @@ def load_passages(filenames, maxload=-1):
                     item["title"] = f"{item['title']}: {item['section']}"
                 return item
             else:
-                print("empty line")
+                logger.warning("empty line in passage file")
 
         for line in open(fname):
             if maxload > -1 and counter >= maxload:

@@ -9,3 +9,4 @@ sentence_transformers==2.2.2
 torch==2.1.1
 tqdm==4.66.1
 transformers==4.35.2
+ujson==5.9.0

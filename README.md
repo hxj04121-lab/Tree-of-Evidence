@@ -26,7 +26,6 @@ pip install -r requirements.txt
 ```
 ├── main.py                         # Main entry point
 ├── generator.py                    # LLM generation component (OpenAI API)
-├── prompts.py                      # Prompt template generation
 ├── utils.py                        # Text processing utilities
 ├── dist_utils.py                   # Distributed training utilities
 ├── slurm.py                        # SLURM cluster integration

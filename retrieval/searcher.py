@@ -318,8 +318,6 @@ class RetrievalModel:
 
         logger.info("loading contriever wikipedia index...")
         self.embedding, self.docs = load_or_initialize_index(self.args)
-        # print("*"*30 + "sleep" + "*"*30)
-        # time.sleep(10000)
         epoch_path = os.path.realpath(self.args.retriever_model_name_or_path)
         save_path = os.path.join(epoch_path, "model.pth.tar")
         logger.info(f"Loading {epoch_path}")
@@ -332,8 +330,6 @@ class RetrievalModel:
         retriever = Atlas(self.args, None, retriever, None, tokenizer)
         retriever = _load_atlas_model_state(self.args, retriever, model_dict)
 
-        # logger.info("loading contriever wikipedia index...")
-        # self.embedding, self.docs = load_or_initialize_index(self.args)
 
         return retriever, tokenizer
 
@@ -508,79 +504,4 @@ class DualEncoderRetriever(BaseRetriever):
 
     def embed_passages(self, *args, **kwargs):
         return self._embed(*args, **kwargs)
-
-
-
-if __name__ == "__main__":
-    warnings.filterwarnings("ignore")
-    parser = argparse.ArgumentParser(description="Passage retrieval.")
-    ### Retriever
-    parser.add_argument("--retriever", type=str, default=None, help="options: bm25/gtr/contriever")
-    parser.add_argument("--retriever_model_name_or_path", type=str, default="sentence-transformers/gtr-t5-xxl",
-                        help="the name or path for gtr retriever, you can pass a model name to download model "
-                             "parameters from huggingface, or a local path to load the model locally")
-    parser.add_argument("--retriever_type", type=str, default="bert-base-uncased",
-                        help="")
-    parser.add_argument("--retriever_cache", type=str, default="./models",
-                        help="his parameter allows you to specify the cache path for your model "
-                             "when you download it from huggingface")
-    parser.add_argument("--retriever_device", type=str, default="cuda:0",
-                        help="cuda device for loading model")
-    parser.add_argument("--embedding_device", type=str, default="cuda:1",
-                        help="cuda device for wiki embedding")
-
-    ### Document file path
-    parser.add_argument("--gtr_embedding", type=str, default=None, help="path of gtr wiki embedding")
-    parser.add_argument("--wiki_passage", type=str, default=None, help="path of wiki passages")
-    parser.add_argument("--bm25_sphere_index", type=str, default=None, help="path of bm25 index about sphere")
-    parser.add_argument("--load_index_path", type=str, default=None, help="path of contriver index file path")
-    parser.add_argument("--save_index_n_shards", type=int, default=128,
-                        help="how many shards to save an index to file with. Must be an integer multiple of the number of workers.")
-
-    ### Retrieval prams
-    parser.add_argument("--top_k_documents", type=int, default=100, help="top k documents will be return")
-
-    ### Distribution prams
-    parser.add_argument("--per_gpu_embedder_batch_size", default=8, type=int, help="Embedder's batch size per GPU.")
-    parser.add_argument("--local-rank", type=int, default=-1, help="For distributed training: local_rank")
-    parser.add_argument("--main_port", type=int, default=-1, help="Main port (for multi-node jobs)")
-
-    args = parser.parse_args()
-    retriever = RetrievalModel(args)
-
-    # result = []
-    # while True:
-    #     if dist_utils.get_rank() == 0:
-    #         question = input("please enter the question：")
-    #         dist.broadcast_object_list([question], src=0)
-    #     else:
-    #         question_list = [None]
-    #         dist.broadcast_object_list(question_list, src=0)
-    #         question = question_list[0]
-    #     if question == "exit":
-    #         break
-    #     response = retriever.get_documents(question=[question], top_k=5)
-    #     result.append(response[0])
-    # if dist_utils.get_rank() == 0:
-    #     with open("./prompts/baselines/demo_documents_react_musique.json", "w") as f:
-    #         json.dump(result, f)
-    # while True:
-    #
-    #     question = input("please enter the question：")
-    #     response = retriever.get_documents(question=[question], top_k=5)
-    #     if dist_utils.get_rank() == 0:
-    #         print(response)
-    #         print("*" * 50)
-
-    with open("./data/musique/ans_dev_first_500.json", "r") as f:
-        data = json.load(f)
-    question = [d["question"] for d in data]
-
-    response = []
-    for q in question:
-        sub_response = retriever.get_documents(question=[q], top_k=15)
-        response.extend(sub_response)
-    if dist_utils.get_rank() == 0:
-        with open("./result/baselines/musique/result/rag_retrieval.json", "w") as f:
-            json.dump(response, f)
 

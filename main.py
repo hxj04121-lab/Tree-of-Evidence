@@ -27,8 +27,6 @@ def main(args):
     test_data = json.load(open(args.test_file_path))
     if args.quick_test_samples is not None:
         if not dist.is_initialized() or dist_utils.get_rank() == 0:
-            # test_ids = np.random.choice(len(test_data), args.quick_test_samples, replace=False)
-            # test_data = [test_data[int(idx)] for idx in test_ids]
             test_data = test_data[: args.quick_test_samples]
             if dist.is_initialized():
                 dist.broadcast_object_list([test_data], src=0)
