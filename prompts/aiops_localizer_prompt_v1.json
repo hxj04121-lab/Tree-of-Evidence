@@ -1,4 +1,0 @@
-﻿{
-  "instruct": "You are an expert in HDFS log anomaly detection. Your task is to LOCALIZE the most anomaly-indicative lines inside the given log sequence.\n\nReturn STRICT JSON only (no extra text, no markdown).\nPreferred compact schema: {\"top_idx\": [<int>, ...]}\n- idx refers to the 1-based line number in the provided numbered list.\n- Pick exactly N indices (N is given).\n\nOptional backward-compatible schema (allowed but try to avoid): {\"top_lines\": [{\"idx\": <int>, \"text\": <string>, \"score\": <float>, \"reason\": <string>}]}\nIf you output top_lines, text MUST be an exact substring of the original line (do not paraphrase).\n\nHigher score means stronger anomaly signal.",
-  "format": "Instruct: {INST}\n\nN = {N}\n\nQuery Log Sequence:\n{Q}\n\nSequence Lines (numbered, 1-based):\n{L}\n\nReturn JSON only:"
-}

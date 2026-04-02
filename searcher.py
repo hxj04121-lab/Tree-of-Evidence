@@ -105,7 +105,7 @@ class RetrivalModel:
         logger.info("loading wikipedia file...")
         if self.args.wiki_passage is None:
             logger.warning("You must pass the --wiki_passage parameter to initialize retriever")
-        enable_block_index = getattr(self.args, "retrieval_mode", "tot") in ("block_chain", "block_chain_tot", "block_chain_vote", "aiops_block_chain_tot", "aiops_chimera_cder", "aiops_chimera_cder_tot", "aiops_chimera_dualview")
+        enable_block_index = getattr(self.args, "retrieval_mode", "tot") in ("block_chain", "block_chain_tot", "block_chain_vote")
         log_dataset = _infer_log_dataset_from_path(self.args.wiki_passage) if self.args.wiki_passage else None
         build_block_index = enable_block_index and log_dataset in ("hdfs", "bgl", "thunderbird")
         block_key_map = None

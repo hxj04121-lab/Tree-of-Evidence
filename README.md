@@ -9,7 +9,6 @@ Tree-of-Evidence (ToE) is an iterative evidence retrieval framework that enhance
 Key components:
 - **Tree-of-Thought Search**: Iterative retrieval with LLM-guided query refinement
 - **Cross-block Evidence Fusion**: Aggregates evidence across log blocks
-- **Chimera-CDER**: Combined anomaly detection with evidence retrieval (Select Anomaly-indicative Lines + Cross-Document Alignment)
 
 ## Requirements
 
@@ -33,12 +32,9 @@ pip install -r requirements.txt
 │   ├── parsing.py                  # LLM response parsing
 │   ├── fusion.py                   # Evidence fusion and conflict resolution
 │   ├── core_tot.py                 # Basic tree-of-thought DFS retrieval
-│   ├── block_chain.py              # Cross-block retrieval and voting
-│   └── aiops.py                    # AIOps modes (Chimera-CDER, dual-view)
+│   └── block_chain.py              # Cross-block retrieval and voting
 ├── searcher.py                     # Retrieval component (GTR / BM25 / Contriever)
 ├── generator.py                    # LLM generation component (OpenAI API)
-├── generator_deepseek.py           # DeepSeek model variant
-├── generator_rules_patch.py        # Rule-based guardrail for anomaly scoring
 ├── index.py                        # FAISS index management
 ├── index_io.py                     # Index I/O utilities
 ├── utils.py                        # Text processing utilities
@@ -74,9 +70,9 @@ python main.py \
     --corpus_path data/converted_logs/hdfs_corpus.jsonl \
     --index_path data/hdfs_index \
     --generator gpt-4o-mini \
-    --retrieval_mode aiops_chimera_cder \
-    --thought_config_path prompts/aiops_thought_prompt.json \
-    --response_config_path prompts/aiops_response_prompt_v8_hdfs_query_aware.json \
+    --retrieval_mode block_chain_tot \
+    --thought_config_path prompts/thought_prompt_v1.json \
+    --response_config_path prompts/response_prompt.json \
     --ndocs 5 \
     --depth 3
 ```
@@ -85,8 +81,8 @@ python main.py \
 
 | Argument | Description |
 |---|---|
-| `--retrieval_mode` | Retrieval strategy: `tot`, `block_chain_tot`, `aiops_chimera_cder`, etc. |
-| `--generator` | LLM backend: `gpt-4o-mini`, `gpt-4o`, `deepseek-chat`, etc. |
+| `--retrieval_mode` | Retrieval strategy: `tot`, `block_chain_tot`, `block_chain_vote`, etc. |
+| `--generator` | LLM backend: `gpt-4o-mini`, `gpt-4o`, etc. |
 | `--depth` | Maximum search depth for tree-of-thought |
 | `--ndocs` | Number of documents to retrieve per round |
 | `--thought_config_path` | Path to thought prompt template |
@@ -95,17 +91,17 @@ python main.py \
 
 ### Experiment Scripts
 
-The `scripts/` directory contains driver scripts for reproducing paper experiments:
+The `scripts/` directory contains utility scripts for result analysis:
 
 ```bash
-# Main AIOps Chimera-CDER experiments
-python scripts/run_hdfs_aiops_chimera_cder_driver.py
+# Bootstrap confidence intervals for main table results
+python scripts/bootstrap_ci.py --result_path result/hdfs_result.json --test_json data/hdfs_test.json
 
-# Evidence fusion ablation
-python scripts/run_evidence_fusion_ablation.py
+# Compile results across multiple experiment runs
+python scripts/compile_all_results.py --result_dir result/
 
-# Same-budget comparison (single-pass vs ToE)
-python scripts/run_same_budget_ablation.py
+# Compute cost report (token usage, latency)
+python scripts/compute_cost_report.py --result_path result/hdfs_result.json
 ```
 
 ### Evaluation

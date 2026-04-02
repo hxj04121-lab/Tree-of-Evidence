@@ -71,14 +71,6 @@ def main(args):
                 logger.warning("block_chain mode currently runs in single-process mode; falling back to ToT(distributed).")
             if getattr(args, "retrieval_mode", "tot") == "block_chain_vote":
                 logger.warning("block_chain_vote mode currently runs in single-process mode; falling back to ToT(distributed).")
-            if getattr(args, "retrieval_mode", "tot") == "aiops_block_chain_tot":
-                logger.warning("aiops_block_chain_tot mode currently runs in single-process mode; falling back to ToT(distributed).")
-            if getattr(args, "retrieval_mode", "tot") == "aiops_chimera_cder":
-                logger.warning("aiops_chimera_cder mode currently runs in single-process mode; falling back to ToT(distributed).")
-            if getattr(args, "retrieval_mode", "tot") == "aiops_chimera_cder_tot":
-                logger.warning("aiops_chimera_cder_tot mode currently runs in single-process mode; falling back to ToT(distributed).")
-            if getattr(args, "retrieval_mode", "tot") == "aiops_chimera_dualview":
-                logger.warning("aiops_chimera_dualview mode currently runs in single-process mode; falling back to ToT(distributed).")
             if args.with_model_evidence:
                 response, reference, evidence, tree = tree_helper.tree_of_thought_missing_evidence_without_fusion_distribute(query=query)
             else:
@@ -91,14 +83,6 @@ def main(args):
                 response, reference, evidence, tree = tree_helper.block_chain_vote_retrieval(query=query)
             elif retrieval_mode == "block_chain_tot":
                 response, reference, evidence, tree = tree_helper.tree_of_thought_with_cross_block(query=query)
-            elif retrieval_mode == "aiops_block_chain_tot":
-                response, reference, evidence, tree = tree_helper.aiops_tree_of_thought_with_cross_block(query=query)
-            elif retrieval_mode == "aiops_chimera_cder":
-                response, reference, evidence, tree = tree_helper.aiops_chimera_cder(query=query)
-            elif retrieval_mode == "aiops_chimera_cder_tot":
-                response, reference, evidence, tree = tree_helper.aiops_chimera_cder(query=query)
-            elif retrieval_mode == "aiops_chimera_dualview":
-                response, reference, evidence, tree = tree_helper.aiops_chimera_dualview(query=query)
             else:
                 response, reference, evidence, tree = tree_helper.tree_of_thought_without_fusion(query=query)
 
@@ -326,7 +310,7 @@ if __name__=="__main__":
         "--retrieval_mode",
         type=str,
         default="tot",
-        choices=["tot", "block_chain", "block_chain_tot", "block_chain_vote", "aiops_block_chain_tot", "aiops_chimera_cder", "aiops_chimera_cder_tot", "aiops_chimera_dualview"],
+        choices=["tot", "block_chain", "block_chain_tot", "block_chain_vote"],
         help=(
             "Retrieval strategy: tot (default), block_chain (HDFS-only multi-block chained retrieval, no ToT), "
             "block_chain_tot (cross-block retrieval + ToT reasoning on supported log corpora), "
@@ -461,63 +445,6 @@ if __name__=="__main__":
         help="Prompt config JSON for block_chain_vote judge (default: prompts/logs_vote_prompt_v1.json).",
     )
 
-    # AIOps cross-block (diagnostic evidence) settings
-    parser.add_argument(
-        "--aiops_query_kind",
-        type=str,
-        default="hdfs_seq",
-        choices=["hdfs_seq", "message"],
-        help=(
-            "AIOps query kind for AIOps modes. hdfs_seq=HDFS sequence; message=single log message query (BGL/TB): "
-            "'Analyze log sequence for block blk_...:'"
-        ),
-    )
-    parser.add_argument(
-        "--aiops_localizer_top_lines",
-        type=int,
-        default=3,
-        help="For HDFS seq queries: select top-N most anomaly-indicative lines to form the retrieval seed (default: 3).",
-    )
-    parser.add_argument(
-        "--aiops_other_blocks",
-        type=int,
-        default=None,
-        help=(
-            "For aiops_block_chain_tot: number of other blocks to retrieve from (default: use --block_chain_other_blocks)."
-        ),
-    )
-    parser.add_argument(
-        "--aiops_self_top_k",
-        type=int,
-        default=5,
-        help="For aiops_block_chain_tot: top-K docs retrieved from self block (default: 5).",
-    )
-    parser.add_argument(
-        "--aiops_other_top_k",
-        type=int,
-        default=1,
-        help="For aiops_block_chain_tot: top-K docs retrieved per other block (default: 1).",
-    )
-    parser.add_argument(
-        "--aiops_cross_append_mode",
-        type=str,
-        default="all",
-        choices=["best", "all"],
-        help=(
-            "For aiops_block_chain_tot: how to include cross-block evidence docs. "
-            "best=only include the single best cross-block doc; all=include one best doc per other block (default)."
-        ),
-    )
-
-    parser.add_argument(
-        "--aiops_skip_thought",
-        type=int,
-        default=0,
-        help=(
-            "For AIOps anomaly detection queries: 1=skip ToT DFS/thought parsing and decide purely via retrieval + response prompt; "
-            "0=run ToT-style thought loop (default). Recommended for fast ablations isolating retrieval effects."
-        ),
-    )
     parser.add_argument(
         "--gate_mode",
         type=str,
@@ -534,108 +461,11 @@ if __name__=="__main__":
         default="direct",
         choices=["direct", "vote", "two_stage"],
         help=(
-            "For aiops_chimera_cder modes: evidence fusion strategy. "
+            "Evidence fusion strategy. "
             "direct=concatenate all docs and call LLM once (default); "
-            "vote=per-block judgments + majority vote (tie -> Anomaly); "
+            "vote=per-block judgments + majority vote; "
             "two_stage=per-block summaries then a final global judgment."
         ),
-    )
-
-    # Chimera-migrated AIOps (SAL + CDA-lite) settings
-    parser.add_argument(
-        "--aiops_localizer_kind",
-        type=str,
-        default="llm",
-        choices=["heuristic", "llm"],
-        help="For aiops_chimera_cder: localizer to select anomaly-indicative lines (default: llm).",
-    )
-    parser.add_argument(
-        "--aiops_localizer_prompt_path",
-        type=str,
-        default="prompts/aiops_localizer_prompt_v1.json",
-        help="Prompt config JSON for the AIOps localizer (default: prompts/aiops_localizer_prompt_v1.json).",
-    )
-    parser.add_argument(
-        "--aiops_localizer_model",
-        type=str,
-        default=None,
-        help="Optional: use a separate model for SAL localizer (default: same as --generator).",
-    )
-    parser.add_argument(
-        "--aiops_localizer_max_gen_len",
-        type=int,
-        default=256,
-        help="Max generation tokens for the SAL localizer (default: 256).",
-    )
-    parser.add_argument(
-        "--aiops_thought_max_gen_len",
-        type=int,
-        default=256,
-        help="Max generation tokens for AIOps ToT thought steps (default: 256).",
-    )
-    parser.add_argument(
-        "--aiops_other_block_select",
-        type=str,
-        default="kw_boost",
-        choices=["freq", "max_score", "kw_boost"],
-        help=("For aiops_chimera_cder: how to select other blocks from global pool. "
-              "freq=count frequency; max_score=best dense score; kw_boost=best(score + alpha*keyword_bonus) (default)."),
-    )
-    parser.add_argument(
-        "--aiops_kw_boost_alpha",
-        type=float,
-        default=0.2,
-        help="For aiops_other_block_select=kw_boost: alpha weight for keyword bonus (default: 0.2).",
-    )
-    parser.add_argument(
-        "--aiops_align_enabled",
-        type=int,
-        default=1,
-        help="For aiops_chimera_cder: enable CDA-lite alignment gate (default: 1).",
-    )
-    parser.add_argument(
-        "--aiops_align_min_covered_lines",
-        type=int,
-        default=None,
-        help="For aiops_chimera_cder: min localizer lines that must be covered by cited evidence (default: ceil(M/2)).",
-    )
-    parser.add_argument(
-        "--aiops_align_max_retry",
-        type=int,
-        default=1,
-        help="For aiops_chimera_cder: max CDA-lite retry rounds (default: 1).",
-    )
-    parser.add_argument(
-        "--aiops_hdfs_severity_guardrail",
-        type=int,
-        default=0,
-        help="For HDFS seq queries: if the query contains WARN/ERROR/exception, force Anomaly.",
-    )
-    parser.add_argument(
-        "--aiops_hdfs_normal_guardrail",
-        type=int,
-        default=0,
-        help="For HDFS seq queries: if there is no strong query-level anomaly cue and no cross-block evidence, force Normal.",
-    )
-    parser.add_argument(
-        "--aiops_bgl_normal_guardrail",
-        type=int,
-        default=0,
-        help="For BGL message queries: force known-normal patterns back to Normal.",
-    )
-
-    # Chimera-migrated AIOps (feature-level): dual-view evidence composition
-    parser.add_argument(
-        "--aiops_dual_view_budget",
-        type=int,
-        default=14,
-        help="For aiops_chimera_dualview: total evidence document budget (default: 14).",
-    )
-    parser.add_argument(
-        "--aiops_dual_view_k_private",
-        type=int,
-        default=10,
-        help="For aiops_chimera_dualview: docs from self-block (private view) (default: 10). Shared view gets the remaining budget.",
     )
 
 

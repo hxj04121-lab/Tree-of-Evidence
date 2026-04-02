@@ -11,7 +11,6 @@ into focused sub-modules for readability:
 - ``fusion``       – evidence fusion and conflict resolution
 - ``core_tot``     – basic tree-of-thought DFS retrieval
 - ``block_chain``  – cross-block retrieval and voting
-- ``aiops``        – AIOps-specific modes (Chimera-CDER, dual-view)
 """
 
 from evidence_tree.utils import (  # noqa: F401
@@ -27,11 +26,9 @@ from evidence_tree.parsing import ParsingMixin
 from evidence_tree.fusion import FusionMixin
 from evidence_tree.core_tot import CoreToTMixin
 from evidence_tree.block_chain import BlockChainMixin
-from evidence_tree.aiops import AIOpsModeMixin
 
 
 class TreeOfEvidence(
-    AIOpsModeMixin,
     BlockChainMixin,
     CoreToTMixin,
     FusionMixin,

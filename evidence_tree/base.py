@@ -1,6 +1,7 @@
 import logging
 import copy
 import os
+import re
 
 import dist_utils
 import torch.distributed as dist
@@ -37,22 +38,6 @@ class TreeOfEvidenceBase:
                 self.vote_generator = initial_generator(judge_args)
             except Exception:
                 self.vote_generator = generator
-
-        # AIOps Chimera-style SAL localizer may use a separate model.
-        self.localizer_generator = generator
-        localizer_model = str(getattr(args, "aiops_localizer_model", "") or "").strip()
-        if localizer_model and localizer_model != getattr(args, "generator", None):
-            try:
-                import copy as _copy
-                from generator import initial_generator
-
-                loc_args = _copy.copy(args)
-                loc_args.generator = localizer_model
-                # Keep localizer output short to reduce latency.
-                loc_args.max_gen_len = int(getattr(args, "aiops_localizer_max_gen_len", 256) or 256)
-                self.localizer_generator = initial_generator(loc_args)
-            except Exception:
-                self.localizer_generator = generator
 
     def _log_match_fastpath(self, query, docs, mode, extra=None):
         """
@@ -108,7 +93,7 @@ class TreeOfEvidenceBase:
         return
     def extract_query_content(self, raw_query, fallback_query=None):
         """
-        Extract clean query content from LLM output (AIOps)
+        Extract clean query content from LLM output.
         Handles formats like: [QUERY] Find subsequent ERROR logs for Block blk_xxx
         """
         query = (raw_query or "").strip()
