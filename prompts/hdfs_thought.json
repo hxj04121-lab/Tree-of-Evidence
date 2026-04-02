@@ -1,0 +1,7 @@
+{
+    "delimiter": "\n\n",
+    "instruct": "You are an expert in HDFS log analysis. Your task is to evaluate provided log documents against a question, following a Tree of Thoughts (ToT) approach. Think step by step. The documents are a whole, so judge with all of them. Focus on HDFS-specific entities like block IDs (e.g., blk_-...), DataNode/NameNode host:port (e.g., 10.251.42.9:50010), and file paths (e.g., /mnt/hadoop/dfs/data/current/...).",
+    "format": "Instruct:{INST}\n\nDemonstration:{DEMO}\n\nQuestion:{Q}\n\nDocuments: {D}",
+    "demo_relevant": [],
+    "demo_irrelevant": []
+}

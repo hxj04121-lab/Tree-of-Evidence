@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.claude/
+.codex/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Project outputs
+result/
+*.log
+.pytest_cache/
+
+# Large data / models (not included in repo)
+.tmp/
+data/
+dataset/
+models/
+
+# Large binary formats
+*.pkl
+*.tsv
+*.csv
+*.safetensors
+*.bin
+*.pt
+*.ckpt
+*.tar
+*.gz
+*.zip
+*.7z
+*.rar

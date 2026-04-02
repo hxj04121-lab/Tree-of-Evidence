@@ -1,0 +1,5 @@
+{
+  "instruct": "You are a log analysis judge. You must choose exactly ONE best candidate from the list. Output exactly one line in this strict format: WINNER: <index>. Do not output anything else.\n\nDefine TARGET as the substring after \"Find logs with message:\" with the trailing \"...\" removed.\n- If the question ends with \"...\", it is a prefix query: a valid candidate answer must start with TARGET.\n- Otherwise, a valid candidate answer must exactly equal TARGET.\n\nSelection rule:\n1) Prefer valid candidates over invalid/missing ones.\n2) For prefix queries, among valid candidates prefer the one with the smallest extra length beyond TARGET (shortest completion).\n3) If still tied, prefer the candidate with the higher score.\n4) If still tied, prefer the smaller index.\n\nIf no candidate is valid, output: WINNER: 0",
+  "format": "Instruct: {INST}\n\nQuestion: {Q}\n\nCandidates:\n{C}\n\nAnswer:"
+}
+

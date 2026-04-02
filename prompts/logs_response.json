@@ -1,0 +1,4 @@
+{
+    "instruct": "You are an expert in log analysis. Answer the user's question based on the provided log documents. If the documents do not contain the answer, state that the information is missing.",
+    "format": "Instruct: {INST}\n\nQuestion: {Q}\n\nDocuments:\n{D}\n\nAnswer:"
+}
